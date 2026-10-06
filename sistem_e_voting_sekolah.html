@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,33 +18,39 @@
             background-color: #0f172a;
             color: #f8fafc;
         }
+        
         .glass-card {
             background: rgba(30, 41, 59, 0.75);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
         .glass-nav {
             background: rgba(15, 23, 42, 0.88);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
+        
         .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(15, 23, 42, 0.6);
         }
+        
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(51, 65, 85, 0.8);
             border-radius: 4px;
         }
-
+        
         @media print {
             body * {
                 visibility: hidden;
             }
-            #modal-print-slips, #modal-print-slips * {
+            #modal-print-slips,
+            #modal-print-slips * {
                 visibility: visible;
             }
             #modal-print-slips {
@@ -62,6 +69,7 @@
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white custom-scrollbar">
 
     <header class="sticky top-0 z-40 glass-nav px-4 lg:px-8 py-3.5 transition-all">
@@ -81,13 +89,13 @@
                     <i data-lucide="check-square" class="w-4 h-4"></i>
                     <span>Bilik Suara</span>
                 </button>
-                
+
                 <button onclick="switchTab('results')" id="nav-btn-results" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
                     <span>Hasil Realtime</span>
                     <i id="lock-icon-results" data-lucide="lock" class="w-3.5 h-3.5 text-amber-400 ml-0.5"></i>
                 </button>
-                
+
                 <button onclick="switchTab('admin')" id="nav-btn-admin" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-slate-300 hover:text-amber-400 hover:bg-slate-800/60" title="Panel Kontrol Admin">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
                     <span>Admin</span>
@@ -222,20 +230,7 @@
             </div>
 
             <!-- Countdown Timer & Status Widget -->
-            <div id="results-countdown-banner" class="glass-card rounded-2xl p-5 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
-                        <i data-lucide="timer" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-white">Status Hitung Mundur Pengumuman Final</h4>
-                        <p class="text-xs text-slate-400" id="timer-status-text">Perolehan suara dapat langsung dipantau secara langsung.</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800 font-mono text-sm sm:text-base font-bold text-indigo-400" id="timer-display">
-                    <span id="timer-hours">00</span>h : <span id="timer-mins">00</span>m : <span id="timer-secs">00</span>s
-                </div>
-            </div>
+
 
             <!-- Stats Header -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -442,7 +437,7 @@
                         <i data-lucide="sliders" class="w-4 h-4"></i> Simulator & Reset Data Pemilihan
                     </h3>
                     <p class="text-xs text-slate-400">Atur ulang suara atau tambahkan simulasi suara untuk keperluan uji coba sistem.</p>
-                    
+
                     <div class="space-y-2">
                         <label class="text-[11px] text-slate-400 font-semibold block">Tambah Suara Acak Simulator:</label>
                         <div class="flex gap-2">
@@ -590,7 +585,7 @@
             </div>
             <h3 class="text-xl font-bold text-white text-center">Konfirmasi Pilihan Anda</h3>
             <p class="text-slate-400 text-xs text-center mt-1">Pastikan Anda telah memilih calon pilihan dengan bijak. Pilihan tidak dapat diubah setelah dikirim.</p>
-            
+
             <div class="my-6 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-4">
                 <img id="modal-candidate-img" src="" alt="Candidate" class="w-16 h-16 rounded-xl object-cover border border-slate-700">
                 <div>
@@ -674,96 +669,87 @@
     <script>
         // Initial Default Candidates Data (Editable via CRUD)
         const defaultCandidatesData = {
-            OSIM: [
-                {
-                    id: 'osim-1',
-                    number: '01',
-                    name: 'Ahmad Raihan & Nabila Putri',
-                    photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-                    category: 'OSIM',
-                    categoryLabel: 'Ketua & Wakil OSIM',
-                    visi: 'Mewujudkan OSIM MTsN 4 Banyuwangi yang inklusif, inovatif, bertalenta digital, serta berlandaskan nilai keagamaan.',
-                    misi: [
-                        'Meningkatkan kegiatan literasi digital dan akademik siswa melalui workshop berkala.',
-                        'Mengembangkan bakat seni, olahraga, dan sains siswa melalui kompetisi internal.',
-                        'Memfasilitasi ruang aspirasi siswa secara terbuka berbasis platform digital.'
-                    ]
-                },
-                {
-                    id: 'osim-2',
-                    number: '02',
-                    name: 'Faris Pratama & Maya Salsabila',
-                    photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
-                    category: 'OSIM',
-                    categoryLabel: 'Ketua & Wakil OSIM',
-                    visi: 'Menjadikan madrasah sebagai wahana kolaborasi siswa yang kreatif, peduli lingkungan, dan berdaya saing.',
-                    misi: [
-                        'Mengadakan program ramah lingkungan (Green Madrasah Campaign).',
-                        'Mengoptimalkan peran media sosial OSIM untuk menyebarkan informasi positif dan prestasi siswa.',
-                        'Menjalin kolaborasi dengan organisasi ekstrakurikuler lain untuk kegiatan terpadu.'
-                    ]
-                }
-            ],
-            PMR: [
-                {
-                    id: 'pmr-1',
-                    number: '01',
-                    name: 'Siti Nurhaliza',
-                    photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
-                    category: 'PMR',
-                    categoryLabel: 'Ketua PMR Madya',
-                    visi: 'Terwujudnya anggota PMR yang tanggap, berjiwa kemanusiaan tinggi, dan mahir dalam pertolongan pertama.',
-                    misi: [
-                        'Rutin menyelenggarakan pelatihan simulasi tanggap darurat dan P3K.',
-                        'Mengadakan bakti sosial dan donor darah bekerja sama dengan PMI.',
-                        'Menjaga kebersihan dan kelengkapan fasilitas UKS madrasah.'
-                    ]
-                },
-                {
-                    id: 'pmr-2',
-                    number: '02',
-                    name: 'Bagas Perkasa',
-                    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-                    category: 'PMR',
-                    categoryLabel: 'Ketua PMR Madya',
-                    visi: 'Menjadikan PMR sebagai ekstrakurikuler yang aktif, solid, serta siap menjadi pelopor kesehatan di madrasah.',
-                    misi: [
-                        'Edukasi pola hidup sehat bagi seluruh siswa secara berkala.',
-                        'Peningkatan kualitas fisik dan mental anggota melalui kegiatan outdoor.',
-                        'Pembentukan tim medis siaga untuk setiap event madrasah.'
-                    ]
-                }
-            ],
-            DG: [
-                {
-                    id: 'dg-1',
-                    number: '01',
-                    name: 'Rizky Ramadhan',
-                    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
-                    category: 'DG',
-                    categoryLabel: 'Pratama Dewan Galang',
-                    visi: 'Membentuk Pramuka Dewan Galang yang disiplin, berkarakter Dasadarma, serta berwawasan lingkungan.',
-                    misi: [
-                        'Menggalakkan perkemahan sabtu-minggu (Persami) yang inovatif dan edukatif.',
-                        'Pelatihan keterampilan pionering, semaphore, dan navigasi darat secara mendalam.',
-                        'Menumbuhkan rasa kepemimpinan dan kemandirian setiap anggota.'
-                    ]
-                },
-                {
-                    id: 'dg-2',
-                    number: '02',
-                    name: 'Dinda Permata',
-                    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
-                    category: 'DG',
-                    categoryLabel: 'Pratama Dewan Galang',
-                    visi: 'Mewujudkan Dewan Galang yang kreatif, berprestasi dalam ajang Lomba Tingkat (LT), dan berjiwa sosial.',
-                    misi: [
-                        'Persiapan intensif regu utama untuk menghadapi kompetisi Pramuka daerah.',
-                        'Mengintegrasikan teknologi dalam materi penjelajahan dan sandi.',
-                        'Mengadakan bakti masyarakat dan aksi peduli lingkungan.'
-                    ]
-                }
-            ]
+            OSIM: [{
+                id: 'osim-1',
+                number: '01',
+                name: 'Ahmad Raihan & Nabila Putri',
+                photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+                category: 'OSIM',
+                categoryLabel: 'Ketua & Wakil OSIM',
+                visi: 'Mewujudkan OSIM MTsN 4 Banyuwangi yang inklusif, inovatif, bertalenta digital, serta berlandaskan nilai keagamaan.',
+                misi: [
+                    'Meningkatkan kegiatan literasi digital dan akademik siswa melalui workshop berkala.',
+                    'Mengembangkan bakat seni, olahraga, dan sains siswa melalui kompetisi internal.',
+                    'Memfasilitasi ruang aspirasi siswa secara terbuka berbasis platform digital.'
+                ]
+            }, {
+                id: 'osim-2',
+                number: '02',
+                name: 'Faris Pratama & Maya Salsabila',
+                photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
+                category: 'OSIM',
+                categoryLabel: 'Ketua & Wakil OSIM',
+                visi: 'Menjadikan madrasah sebagai wahana kolaborasi siswa yang kreatif, peduli lingkungan, dan berdaya saing.',
+                misi: [
+                    'Mengadakan program ramah lingkungan (Green Madrasah Campaign).',
+                    'Mengoptimalkan peran media sosial OSIM untuk menyebarkan informasi positif dan prestasi siswa.',
+                    'Menjalin kolaborasi dengan organisasi ekstrakurikuler lain untuk kegiatan terpadu.'
+                ]
+            }],
+            PMR: [{
+                id: 'pmr-1',
+                number: '01',
+                name: 'Siti Nurhaliza',
+                photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
+                category: 'PMR',
+                categoryLabel: 'Ketua PMR Madya',
+                visi: 'Terwujudnya anggota PMR yang tanggap, berjiwa kemanusiaan tinggi, dan mahir dalam pertolongan pertama.',
+                misi: [
+                    'Rutin menyelenggarakan pelatihan simulasi tanggap darurat dan P3K.',
+                    'Mengadakan bakti sosial dan donor darah bekerja sama dengan PMI.',
+                    'Menjaga kebersihan dan kelengkapan fasilitas UKS madrasah.'
+                ]
+            }, {
+                id: 'pmr-2',
+                number: '02',
+                name: 'Bagas Perkasa',
+                photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+                category: 'PMR',
+                categoryLabel: 'Ketua PMR Madya',
+                visi: 'Menjadikan PMR sebagai ekstrakurikuler yang aktif, solid, serta siap menjadi pelopor kesehatan di madrasah.',
+                misi: [
+                    'Edukasi pola hidup sehat bagi seluruh siswa secara berkala.',
+                    'Peningkatan kualitas fisik dan mental anggota melalui kegiatan outdoor.',
+                    'Pembentukan tim medis siaga untuk setiap event madrasah.'
+                ]
+            }],
+            DG: [{
+                id: 'dg-1',
+                number: '01',
+                name: 'Rizky Ramadhan',
+                photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
+                category: 'DG',
+                categoryLabel: 'Pratama Dewan Galang',
+                visi: 'Membentuk Pramuka Dewan Galang yang disiplin, berkarakter Dasadarma, serta berwawasan lingkungan.',
+                misi: [
+                    'Menggalakkan perkemahan sabtu-minggu (Persami) yang inovatif dan edukatif.',
+                    'Pelatihan keterampilan pionering, semaphore, dan navigasi darat secara mendalam.',
+                    'Menumbuhkan rasa kepemimpinan dan kemandirian setiap anggota.'
+                ]
+            }, {
+                id: 'dg-2',
+                number: '02',
+                name: 'Dinda Permata',
+                photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
+                category: 'DG',
+                categoryLabel: 'Pratama Dewan Galang',
+                visi: 'Mewujudkan Dewan Galang yang kreatif, berprestasi dalam ajang Lomba Tingkat (LT), dan berjiwa sosial.',
+                misi: [
+                    'Persiapan intensif regu utama untuk menghadapi kompetisi Pramuka daerah.',
+                    'Mengintegrasikan teknologi dalam materi penjelajahan dan sandi.',
+                    'Mengadakan bakti masyarakat dan aksi peduli lingkungan.'
+                ]
+            }]
         };
 
         // Application Global State
@@ -816,7 +802,7 @@
 
             const toast = document.createElement('div');
             const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-indigo-600';
-            
+
             toast.className = `${bgClass} text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-semibold transform translate-y-4 opacity-0 transition-all duration-300 pointer-events-auto`;
             toast.innerHTML = `
                 <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i>
@@ -839,7 +825,7 @@
         function updateSecurityIcons() {
             const resultsIcon = document.getElementById('lock-icon-results');
             const adminIcon = document.getElementById('lock-icon-admin');
-            
+
             if (resultsIcon) {
                 resultsIcon.setAttribute('data-lucide', state.isResultsAuth ? 'unlock' : 'lock');
                 resultsIcon.className = `w-3.5 h-3.5 ${state.isResultsAuth ? 'text-emerald-400' : 'text-amber-400'} ml-0.5`;
@@ -1216,7 +1202,7 @@
         function generateTokens(count) {
             const tokens = [];
             const existingTokens = new Set();
-            
+
             for (let i = 1; i <= count; i++) {
                 let tokenCode = '';
                 do {
@@ -1303,8 +1289,8 @@
         function getFilteredTokens() {
             const list = state.registeredTokens || [];
             if (!tokenPageState.searchQuery) return list;
-            return list.filter(t => 
-                t.nis.toLowerCase().includes(tokenPageState.searchQuery) || 
+            return list.filter(t =>
+                t.nis.toLowerCase().includes(tokenPageState.searchQuery) ||
                 t.token.toLowerCase().includes(tokenPageState.searchQuery) ||
                 t.category.toLowerCase().includes(tokenPageState.searchQuery)
             );
@@ -1825,4 +1811,5 @@
         }
     </script>
 </body>
+
 </html>
