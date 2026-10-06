@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting MTsN 4 Banyuwangi - OSIM, PMR & Dewan Galang</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for Realtime Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #modal-print-slips, #modal-print-slips * {
+                visibility: visible;
+            }
+            #modal-print-slips {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .token-card-print {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white custom-scrollbar">
+
+    <header class="sticky top-0 z-40 glass-nav px-4 lg:px-8 py-3.5 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="vote" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">E-Voting MTsN 4 Banyuwangi</h1>
+                    <p class="text-xs text-slate-400 font-medium">Pemilihan Ketua OSIM, PMR & Dewan Galang</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="switchTab('voting')" id="nav-btn-voting" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>Bilik Suara</span>
+                </button>
+                
+                <button onclick="switchTab('results')" id="nav-btn-results" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span>Hasil Realtime</span>
+                    <i id="lock-icon-results" data-lucide="lock" class="w-3.5 h-3.5 text-amber-400 ml-0.5"></i>
+                </button>
+                
+                <button onclick="switchTab('admin')" id="nav-btn-admin" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-slate-300 hover:text-amber-400 hover:bg-slate-800/60" title="Panel Kontrol Admin">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Admin</span>
+                    <i id="lock-icon-admin" data-lucide="lock" class="w-3.5 h-3.5 text-amber-400 ml-0.5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <!-- TAB 1: VOTING BOOTH -->
+        <section id="tab-voting" class="space-y-8">
+            <!-- Voter Authentication Card -->
+            <div id="voter-auth-card" class="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="max-w-xl mx-auto text-center space-y-4">
+                    <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Autentikasi Pemilih MTsN 4 Banyuwangi
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Masukkan NIS / ID Guru & Token</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Gunakan NIS (Siswa) atau ID Guru beserta Kode Token unik yang dibagikan panitia untuk masuk ke bilik suara digital.</p>
+
+                    <form onsubmit="handleLogin(event)" class="pt-2 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="text-left">
+                                <label class="text-[11px] font-semibold text-slate-400 mb-1 block">NIS / ID Guru</label>
+                                <input type="text" id="input-nis" required placeholder="Contoh: 10001 / GURU-1001" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div class="text-left">
+                                <label class="text-[11px] font-semibold text-slate-400 mb-1 block">Token Unik</label>
+                                <input type="text" id="input-token" required placeholder="Contoh: MT4-X79K2M" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white uppercase tracking-wider font-mono placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/25 transition">
+                            Masuk Bilik Suara
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active Voter Session Header -->
+            <div id="voter-active-card" class="hidden glass-card rounded-2xl p-5 border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold">
+                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Pemilih Aktif:</span>
+                            <span id="voter-display-name" class="text-sm font-bold text-white">Nama Pemilih</span>
+                        </div>
+                        <p class="text-xs text-emerald-400 mt-0.5">Sesi aktif. Silakan tentukan pilihan Anda untuk ketiga kategori.</p>
+                    </div>
+                </div>
+                <button onclick="logoutVoter()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
+                </button>
+            </div>
+
+            <!-- Category Navigation Tabs -->
+            <div class="flex items-center justify-center gap-2 border-b border-slate-800 pb-4 overflow-x-auto">
+                <button onclick="switchCategory('OSIM')" id="cat-tab-OSIM" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap">
+                    <span>Ketua OSIM</span>
+                    <span id="badge-voted-OSIM" class="hidden w-2 h-2 rounded-full bg-emerald-400"></span>
+                </button>
+                <button onclick="switchCategory('PMR')" id="cat-tab-PMR" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap">
+                    <span>Ketua PMR</span>
+                    <span id="badge-voted-PMR" class="hidden w-2 h-2 rounded-full bg-emerald-400"></span>
+                </button>
+                <button onclick="switchCategory('DG')" id="cat-tab-DG" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap">
+                    <span>Dewan Galang (DG)</span>
+                    <span id="badge-voted-DG" class="hidden w-2 h-2 rounded-full bg-emerald-400"></span>
+                </button>
+            </div>
+
+            <!-- Category Section Container -->
+            <div>
+                <!-- OSIM SECTION -->
+                <div id="section-OSIM" class="category-section space-y-6">
+                    <div class="text-center max-w-2xl mx-auto mb-8">
+                        <span class="text-xs font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">Kategori 1</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Pemilihan Ketua OSIM</h2>
+                        <p class="text-slate-400 text-sm mt-1">Pilihlah calon pemimpin Organisasi Siswa Intra Madrasah MTsN 4 Banyuwangi.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto" id="candidates-container-OSIM">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- PMR SECTION -->
+                <div id="section-PMR" class="category-section space-y-6 hidden">
+                    <div class="text-center max-w-2xl mx-auto mb-8">
+                        <span class="text-xs font-extrabold uppercase tracking-widest text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">Kategori 2</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Pemilihan Ketua PMR</h2>
+                        <p class="text-slate-400 text-sm mt-1">Pilihlah calon Ketua Palang Merah Remaja yang berdedikasi tinggi dan tanggap.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto" id="candidates-container-PMR">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- DG SECTION -->
+                <div id="section-DG" class="category-section space-y-6 hidden">
+                    <div class="text-center max-w-2xl mx-auto mb-8">
+                        <span class="text-xs font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Kategori 3</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Pemilihan Ketua Dewan Galang (Pramuka)</h2>
+                        <p class="text-slate-400 text-sm mt-1">Pilihlah Pemimpin Dewan Galang Pramuka yang tangguh dan berjiwa kepemimpinan.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto" id="candidates-container-DG">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: REALTIME RESULTS -->
+        <section id="tab-results" class="space-y-8 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Hasil Realtime Pemungutan Suara</h2>
+                    <p class="text-slate-400 text-sm mt-1">Perolehan suara terupdate secara otomatis dari seluruh bilik suara MTsN 4 Banyuwangi.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="lockResultsSession()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i data-lucide="lock" class="w-4 h-4"></i> Kunci Sesi Hasil
+                    </button>
+                    <button onclick="renderResults()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition" title="Refresh Manual">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Countdown Timer & Status Widget -->
+            <div id="results-countdown-banner" class="glass-card rounded-2xl p-5 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                        <i data-lucide="timer" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Status Hitung Mundur Pengumuman Final</h4>
+                        <p class="text-xs text-slate-400" id="timer-status-text">Perolehan suara dapat langsung dipantau secara langsung.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800 font-mono text-sm sm:text-base font-bold text-indigo-400" id="timer-display">
+                    <span id="timer-hours">00</span>h : <span id="timer-mins">00</span>m : <span id="timer-secs">00</span>s
+                </div>
+            </div>
+
+            <!-- Stats Header -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-indigo-500">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Suara Masuk</p>
+                    <p class="text-3xl font-extrabold text-white mt-2" id="stat-total-votes">0</p>
+                    <p class="text-xs text-slate-500 mt-1">Akumulasi dari 3 kategori</p>
+                </div>
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-purple-500">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pemilih Terdaftar</p>
+                    <p class="text-3xl font-extrabold text-white mt-2" id="stat-total-voters">1.200</p>
+                    <p class="text-xs text-slate-500 mt-1">1.100 Siswa & 100 Guru</p>
+                </div>
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-emerald-500">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tingkat Partisipasi</p>
+                    <p class="text-3xl font-extrabold text-emerald-400 mt-2" id="stat-turnout">0%</p>
+                    <p class="text-xs text-slate-500 mt-1">Persentase keikutsertaan</p>
+                </div>
+            </div>
+
+            <!-- Category Chart Grids -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- OSIM Result Card -->
+                <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Ketua OSIM
+                            </h3>
+                            <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20" id="osim-total-badge">0 Suara</span>
+                        </div>
+                        <div class="relative h-48 mb-6">
+                            <canvas id="chart-OSIM"></canvas>
+                        </div>
+                        <div class="space-y-3" id="details-OSIM"></div>
+                    </div>
+                </div>
+
+                <!-- PMR Result Card -->
+                <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Ketua PMR
+                            </h3>
+                            <span class="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20" id="pmr-total-badge">0 Suara</span>
+                        </div>
+                        <div class="relative h-48 mb-6">
+                            <canvas id="chart-PMR"></canvas>
+                        </div>
+                        <div class="space-y-3" id="details-PMR"></div>
+                    </div>
+                </div>
+
+                <!-- DG Result Card -->
+                <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Ketua Dewan Galang
+                            </h3>
+                            <span class="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20" id="dg-total-badge">0 Suara</span>
+                        </div>
+                        <div class="relative h-48 mb-6">
+                            <canvas id="chart-DG"></canvas>
+                        </div>
+                        <div class="space-y-3" id="details-DG"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: ADMIN PANEL -->
+        <section id="tab-admin" class="space-y-8 hidden">
+            <!-- Header Admin -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-amber-400"></i> Panel Administrasi MTsN 4 Banyuwangi
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Kelola data Paslon (CRUD), generator 1.200 token, password akses, dan simulator suara.</p>
+                </div>
+                <button onclick="lockAdminSession()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar Admin
+                </button>
+            </div>
+
+            <!-- SECTION 1: CANDIDATE CRUD MANAGEMENT -->
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-indigo-400"></i> Manajemen Calon / Paslon (OSIM, PMR, DG)
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Tambah, edit foto/gambar, visi & misi, atau hapus calon kandidat secara mandiri.</p>
+                    </div>
+                    <button onclick="openCandidateModal('add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Paslon Baru
+                    </button>
+                </div>
+
+                <!-- Admin Candidates List Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="admin-candidates-grid">
+                    <!-- Dynamic rendering of candidate cards for CRUD -->
+                </div>
+            </div>
+
+            <!-- SECTION 2: TOKEN GENERATOR & MANAGEMENT (1,200) -->
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i> Generator & Manajemen Token Pemilih (1.200 Akun)
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sistem pembuat token sekali pakai untuk 1.100 Siswa & 100 Guru/Staf MTsN 4 Banyuwangi.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="printTokenSlips()" class="px-3.5 py-2 bg-purple-600/20 border border-purple-500/40 hover:bg-purple-600 text-purple-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Kupon Token (A4)
+                        </button>
+                        <button onclick="exportTokensCSV()" class="px-3.5 py-2 bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-4 h-4"></i> Ekspor CSV / Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preset Generator Buttons -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-semibold text-slate-400">Opsi Cepat:</span>
+                        <button onclick="generateTokens(100)" class="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition">100 Token</button>
+                        <button onclick="generateTokens(500)" class="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition">500 Token</button>
+                        <button onclick="generateTokens(1100)" class="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition">1.100 Siswa</button>
+                        <button onclick="generateTokens(1200)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/25">🚀 1.200 Full (Siswa + Guru)</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="custom-token-count" placeholder="Jumlah token..." min="1" max="3000" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                        <button onclick="generateCustomTokens()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition whitespace-nowrap">Buat</button>
+                    </div>
+                </div>
+
+                <!-- Search & Pagination Controls -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                        <input type="text" id="token-search-input" oninput="filterTokens()" placeholder="Cari NIS, ID Guru atau Token..." class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end text-xs text-slate-400">
+                        <span id="token-stats-info">Memuat data token...</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="changeTokenPage(-1)" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300" title="Sebelumnya"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <span id="token-page-num" class="px-2 font-bold text-white">1</span>
+                            <button onclick="changeTokenPage(1)" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300" title="Selanjutnya"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto max-h-80 custom-scrollbar border border-slate-800 rounded-xl">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-950/80 sticky top-0 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="px-4 py-3">No</th>
+                                <th class="px-4 py-3">NIS / ID Guru</th>
+                                <th class="px-4 py-3">Token Unik</th>
+                                <th class="px-4 py-3">Kategori</th>
+                                <th class="px-4 py-3">Status Voting</th>
+                            </tr>
+                        </thead>
+                        <tbody id="token-list-tbody" class="divide-y divide-slate-800/60 bg-slate-900/40">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 3: SECURITY & SIMULATION CONTROLS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Change Passwords -->
+                <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <i data-lucide="lock" class="w-4 h-4"></i> Pengaturan Sandi Akses (Security)
+                    </h3>
+                    <p class="text-xs text-slate-400">Ubah kata sandi untuk pengamanan Panel Admin dan Akses Hasil Realtime.</p>
+
+                    <form onsubmit="handleUpdatePasswords(event)" class="space-y-3">
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Sandi Panel Admin</label>
+                            <input type="password" id="input-new-admin-pw" required placeholder="Default: admin123" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Sandi Hasil Realtime</label>
+                            <input type="password" id="input-new-results-pw" required placeholder="Default: hasil123" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition">
+                            Simpan Kata Sandi Baru
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Simulation & Reset Controls -->
+                <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+                    <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4"></i> Simulator & Reset Data Pemilihan
+                    </h3>
+                    <p class="text-xs text-slate-400">Atur ulang suara atau tambahkan simulasi suara untuk keperluan uji coba sistem.</p>
+                    
+                    <div class="space-y-2">
+                        <label class="text-[11px] text-slate-400 font-semibold block">Tambah Suara Acak Simulator:</label>
+                        <div class="flex gap-2">
+                            <button onclick="simulateVotes(20)" class="flex-1 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition">+20 Suara</button>
+                            <button onclick="simulateVotes(100)" class="flex-1 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition">+100 Suara</button>
+                            <button onclick="simulateVotes(300)" class="flex-1 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition">+300 Suara</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="resetAllVotes()" class="w-full py-2.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>Atur Ulang Perolehan Suara (Reset Total)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: ADMIN PASSWORD AUTH -->
+    <div id="modal-admin-auth" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-slate-700/60 transform scale-95 transition-transform duration-200 shadow-2xl" id="modal-admin-auth-box">
+            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="shield-alert" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white text-center">Akses Panel Admin</h3>
+            <p class="text-slate-400 text-xs text-center mt-1">Masukkan kata sandi administrator MTsN 4 Banyuwangi untuk melanjutkan.</p>
+
+            <form onsubmit="verifyAdminAuth(event)" class="mt-5 space-y-4">
+                <div>
+                    <input type="password" id="input-auth-admin-pw" required placeholder="Masukkan Sandi Admin..." class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 text-center">
+                    <p class="text-[10px] text-slate-500 text-center mt-1.5">Sandi bawaan default: <code class="text-amber-400">admin123</code></p>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeAdminAuthModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-600/30">Masuk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: RESULTS PASSWORD AUTH -->
+    <div id="modal-results-auth" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-slate-700/60 transform scale-95 transition-transform duration-200 shadow-2xl" id="modal-results-auth-box">
+            <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="lock" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white text-center">Akses Hasil Realtime</h3>
+            <p class="text-slate-400 text-xs text-center mt-1">Halaman perolehan suara dilindungi sandi untuk menjaga kerahasiaan sebelum waktu pengumuman.</p>
+
+            <form onsubmit="verifyResultsAuth(event)" class="mt-5 space-y-4">
+                <div>
+                    <input type="password" id="input-auth-results-pw" required placeholder="Masukkan Sandi Hasil..." class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-center">
+                    <p class="text-[10px] text-slate-500 text-center mt-1.5">Sandi bawaan default: <code class="text-indigo-400">hasil123</code></p>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeResultsAuthModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30">Buka Hasil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CANDIDATE CRUD FORM (CREATE / EDIT) -->
+    <div id="modal-candidate-form" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-700/60 transform scale-95 transition-transform duration-200 shadow-2xl max-h-[90vh] flex flex-col" id="modal-cand-box">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <h3 class="text-lg font-bold text-white" id="cand-form-title">Tambah Paslon Baru</h3>
+                <button onclick="closeCandidateModal()" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900/50">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveCandidate(event)" class="py-4 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs">
+                <input type="hidden" id="cand-edit-id">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-400 font-semibold block mb-1">Kategori Organisasi</label>
+                        <select id="cand-input-category" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                            <option value="OSIM">Ketua OSIM</option>
+                            <option value="PMR">Ketua PMR</option>
+                            <option value="DG">Dewan Galang (DG)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-semibold block mb-1">Nomor Urut Paslon</label>
+                        <input type="text" id="cand-input-number" required placeholder="Contoh: 01" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Nama Paslon / Calon</label>
+                    <input type="text" id="cand-input-name" required placeholder="Contoh: Ahmad Raihan & Nabila" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Label Kategori / Jabatan</label>
+                    <input type="text" id="cand-input-catlabel" required placeholder="Contoh: Ketua & Wakil OSIM" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <!-- Gambar/Foto Option (URL or Upload File) -->
+                <div class="space-y-2 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+                    <label class="text-slate-300 font-bold block">Foto Paslon (Pilih File atau URL)</label>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Unggah dari File (HP/Laptop):</label>
+                        <input type="file" id="cand-input-file" accept="image/*" onchange="handleCandidateImageUpload(event)" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+                    </div>
+                    <div class="text-center text-slate-500 font-bold text-[10px] my-1">- ATAU -</div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">URL Foto Gambar Web:</label>
+                        <input type="text" id="cand-input-photo-url" oninput="previewPhotoUrl()" placeholder="https://..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="mt-2 text-center">
+                        <span class="text-[10px] text-slate-400 block mb-1">Pratinjau Foto:</span>
+                        <img id="cand-photo-preview" src="https://placehold.co/400x300/1e293b/64748b?text=Preview+Foto" class="w-28 h-28 object-cover rounded-xl border border-slate-700 mx-auto">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Visi Utama</label>
+                    <textarea id="cand-input-visi" required rows="2" placeholder="Tuliskan visi utama kandidat..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Misi & Program Kerja (Satu per baris)</label>
+                    <textarea id="cand-input-misi" required rows="3" placeholder="Contoh Misi 1&#10;Contoh Misi 2&#10;Contoh Misi 3" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800 flex gap-2">
+                    <button type="button" onclick="closeCandidateModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30">Simpan Candidate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CONFIRMATION VOTE -->
+    <div id="modal-confirm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-700/60 transform scale-95 transition-transform duration-200 shadow-2xl" id="modal-confirm-box">
+            <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="check-circle-2" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white text-center">Konfirmasi Pilihan Anda</h3>
+            <p class="text-slate-400 text-xs text-center mt-1">Pastikan Anda telah memilih calon pilihan dengan bijak. Pilihan tidak dapat diubah setelah dikirim.</p>
+            
+            <div class="my-6 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-4">
+                <img id="modal-candidate-img" src="" alt="Candidate" class="w-16 h-16 rounded-xl object-cover border border-slate-700">
+                <div>
+                    <span id="modal-candidate-num" class="text-xs font-extrabold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">No 01</span>
+                    <h4 id="modal-candidate-name" class="text-base font-bold text-white mt-1">Nama Paslon</h4>
+                    <p id="modal-candidate-cat" class="text-xs text-slate-400">Ketua OSIM</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold transition">Batal</button>
+                <button id="btn-submit-vote" onclick="executeVote()" class="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 transition">Ya, Kirim Suara</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: VISI MISI DETAIL -->
+    <div id="modal-visi-misi" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-700/60 transform scale-95 transition-transform duration-200 shadow-2xl max-h-[85vh] flex flex-col" id="modal-vm-box">
+            <div class="flex items-start justify-between pb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <span id="vm-num" class="text-xs font-extrabold px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300">No 01</span>
+                    <div>
+                        <h3 id="vm-name" class="text-lg font-bold text-white">Nama Paslon</h3>
+                        <p id="vm-org" class="text-xs text-slate-400">Ketua OSIM</p>
+                    </div>
+                </div>
+                <button onclick="closeVisiMisiModal()" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900/50">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="py-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2 mb-2">
+                        <i data-lucide="compass" class="w-4 h-4"></i> Visi Utama
+                    </h4>
+                    <p id="vm-visi" class="text-sm text-slate-300 leading-relaxed bg-slate-900/50 p-4 rounded-2xl border border-slate-800/80 italic">"..."</p>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2 mb-2">
+                        <i data-lucide="list-checks" class="w-4 h-4"></i> Misi & Program Kerja
+                    </h4>
+                    <ul id="vm-misi-list" class="space-y-2 text-xs text-slate-300"></ul>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800">
+                <button onclick="closeVisiMisiModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: PRINT TOKEN SLIPS -->
+    <div id="modal-print-slips" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex flex-col p-4 sm:p-8">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800 text-white max-w-5xl mx-auto w-full">
+            <div>
+                <h3 class="text-lg font-bold">Kartu Kupon Voting MTsN 4 Banyuwangi</h3>
+                <p class="text-xs text-slate-400">Siap dicetak di kertas A4 dan dipotong untuk dibagikan ke siswa & guru.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Cetak Sekarang
+                </button>
+                <button onclick="closePrintModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scrollbar my-4 max-w-5xl mx-auto w-full p-6 bg-white text-slate-900 rounded-2xl print:p-0 print:bg-transparent" id="printable-cards-container">
+            <!-- Rendered printable token slips -->
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Initial Default Candidates Data (Editable via CRUD)
+        const defaultCandidatesData = {
+            OSIM: [
+                {
+                    id: 'osim-1',
+                    number: '01',
+                    name: 'Ahmad Raihan & Nabila Putri',
+                    photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+                    category: 'OSIM',
+                    categoryLabel: 'Ketua & Wakil OSIM',
+                    visi: 'Mewujudkan OSIM MTsN 4 Banyuwangi yang inklusif, inovatif, bertalenta digital, serta berlandaskan nilai keagamaan.',
+                    misi: [
+                        'Meningkatkan kegiatan literasi digital dan akademik siswa melalui workshop berkala.',
+                        'Mengembangkan bakat seni, olahraga, dan sains siswa melalui kompetisi internal.',
+                        'Memfasilitasi ruang aspirasi siswa secara terbuka berbasis platform digital.'
+                    ]
+                },
+                {
+                    id: 'osim-2',
+                    number: '02',
+                    name: 'Faris Pratama & Maya Salsabila',
+                    photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400',
+                    category: 'OSIM',
+                    categoryLabel: 'Ketua & Wakil OSIM',
+                    visi: 'Menjadikan madrasah sebagai wahana kolaborasi siswa yang kreatif, peduli lingkungan, dan berdaya saing.',
+                    misi: [
+                        'Mengadakan program ramah lingkungan (Green Madrasah Campaign).',
+                        'Mengoptimalkan peran media sosial OSIM untuk menyebarkan informasi positif dan prestasi siswa.',
+                        'Menjalin kolaborasi dengan organisasi ekstrakurikuler lain untuk kegiatan terpadu.'
+                    ]
+                }
+            ],
+            PMR: [
+                {
+                    id: 'pmr-1',
+                    number: '01',
+                    name: 'Siti Nurhaliza',
+                    photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400',
+                    category: 'PMR',
+                    categoryLabel: 'Ketua PMR Madya',
+                    visi: 'Terwujudnya anggota PMR yang tanggap, berjiwa kemanusiaan tinggi, dan mahir dalam pertolongan pertama.',
+                    misi: [
+                        'Rutin menyelenggarakan pelatihan simulasi tanggap darurat dan P3K.',
+                        'Mengadakan bakti sosial dan donor darah bekerja sama dengan PMI.',
+                        'Menjaga kebersihan dan kelengkapan fasilitas UKS madrasah.'
+                    ]
+                },
+                {
+                    id: 'pmr-2',
+                    number: '02',
+                    name: 'Bagas Perkasa',
+                    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+                    category: 'PMR',
+                    categoryLabel: 'Ketua PMR Madya',
+                    visi: 'Menjadikan PMR sebagai ekstrakurikuler yang aktif, solid, serta siap menjadi pelopor kesehatan di madrasah.',
+                    misi: [
+                        'Edukasi pola hidup sehat bagi seluruh siswa secara berkala.',
+                        'Peningkatan kualitas fisik dan mental anggota melalui kegiatan outdoor.',
+                        'Pembentukan tim medis siaga untuk setiap event madrasah.'
+                    ]
+                }
+            ],
+            DG: [
+                {
+                    id: 'dg-1',
+                    number: '01',
+                    name: 'Rizky Ramadhan',
+                    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
+                    category: 'DG',
+                    categoryLabel: 'Pratama Dewan Galang',
+                    visi: 'Membentuk Pramuka Dewan Galang yang disiplin, berkarakter Dasadarma, serta berwawasan lingkungan.',
+                    misi: [
+                        'Menggalakkan perkemahan sabtu-minggu (Persami) yang inovatif dan edukatif.',
+                        'Pelatihan keterampilan pionering, semaphore, dan navigasi darat secara mendalam.',
+                        'Menumbuhkan rasa kepemimpinan dan kemandirian setiap anggota.'
+                    ]
+                },
+                {
+                    id: 'dg-2',
+                    number: '02',
+                    name: 'Dinda Permata',
+                    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
+                    category: 'DG',
+                    categoryLabel: 'Pratama Dewan Galang',
+                    visi: 'Mewujudkan Dewan Galang yang kreatif, berprestasi dalam ajang Lomba Tingkat (LT), dan berjiwa sosial.',
+                    misi: [
+                        'Persiapan intensif regu utama untuk menghadapi kompetisi Pramuka daerah.',
+                        'Mengintegrasikan teknologi dalam materi penjelajahan dan sandi.',
+                        'Mengadakan bakti masyarakat dan aksi peduli lingkungan.'
+                    ]
+                }
+            ]
+        };
+
+        // Application Global State
+        let state = {
+            candidates: JSON.parse(localStorage.getItem('evoting_candidates_v3')) || defaultCandidatesData,
+            currentVoter: JSON.parse(localStorage.getItem('evoting_voter')) || null,
+            votes: JSON.parse(localStorage.getItem('evoting_votes')) || {
+                'osim-1': 142,
+                'osim-2': 118,
+                'pmr-1': 95,
+                'pmr-2': 105,
+                'dg-1': 130,
+                'dg-2': 88
+            },
+            registeredTokens: JSON.parse(localStorage.getItem('evoting_tokens_v2')) || [],
+            adminPw: localStorage.getItem('evoting_admin_pw') || 'admin123',
+            resultsPw: localStorage.getItem('evoting_results_pw') || 'hasil123',
+            isAdminAuth: false,
+            isResultsAuth: false,
+            activeCategory: 'OSIM',
+            activeTab: 'voting',
+            selectedCandidateForVote: null
+        };
+
+        let tokenPageState = {
+            currentPage: 1,
+            pageSize: 50,
+            searchQuery: ''
+        };
+
+        let charts = {};
+
+        // Window Onload Initialization
+        window.onload = function() {
+            lucide.createIcons();
+            checkVoterSession();
+            renderCandidates();
+            initCharts();
+            if (state.registeredTokens.length === 0) {
+                generateTokens(1200);
+            } else {
+                renderTokenTable();
+            }
+            updateSecurityIcons();
+        };
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-indigo-600';
+            
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-semibold transform translate-y-4 opacity-0 transition-all duration-300 pointer-events-auto`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function updateSecurityIcons() {
+            const resultsIcon = document.getElementById('lock-icon-results');
+            const adminIcon = document.getElementById('lock-icon-admin');
+            
+            if (resultsIcon) {
+                resultsIcon.setAttribute('data-lucide', state.isResultsAuth ? 'unlock' : 'lock');
+                resultsIcon.className = `w-3.5 h-3.5 ${state.isResultsAuth ? 'text-emerald-400' : 'text-amber-400'} ml-0.5`;
+            }
+            if (adminIcon) {
+                adminIcon.setAttribute('data-lucide', state.isAdminAuth ? 'unlock' : 'lock');
+                adminIcon.className = `w-3.5 h-3.5 ${state.isAdminAuth ? 'text-emerald-400' : 'text-amber-400'} ml-0.5`;
+            }
+            lucide.createIcons();
+        }
+
+        function switchTab(tabName) {
+            if (tabName === 'results' && !state.isResultsAuth) {
+                openResultsAuthModal();
+                return;
+            }
+
+            if (tabName === 'admin' && !state.isAdminAuth) {
+                openAdminAuthModal();
+                return;
+            }
+
+            state.activeTab = tabName;
+            ['voting', 'results', 'admin'].forEach(t => {
+                const sec = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`nav-btn-${t}`);
+                if (sec) sec.classList.toggle('hidden', t !== tabName);
+                if (btn) {
+                    if (t === tabName) {
+                        btn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30";
+                    } else {
+                        btn.className = "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60";
+                    }
+                }
+            });
+
+            if (tabName === 'results') {
+                renderResults();
+            } else if (tabName === 'admin') {
+                renderAdminCandidates();
+            }
+        }
+
+        function switchCategory(cat) {
+            state.activeCategory = cat;
+            ['OSIM', 'PMR', 'DG'].forEach(c => {
+                const sec = document.getElementById(`section-${c}`);
+                const btn = document.getElementById(`cat-tab-${c}`);
+                if (sec) sec.classList.toggle('hidden', c !== cat);
+                if (btn) {
+                    if (c === cat) {
+                        btn.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap";
+                    } else {
+                        btn.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap";
+                    }
+                }
+            });
+        }
+
+        // --- ADMIN & RESULTS AUTHENTICATION ---
+        function openAdminAuthModal() {
+            const modal = document.getElementById('modal-admin-auth');
+            const box = document.getElementById('modal-admin-auth-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            lucide.createIcons();
+        }
+
+        function closeAdminAuthModal() {
+            const modal = document.getElementById('modal-admin-auth');
+            const box = document.getElementById('modal-admin-auth-box');
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function verifyAdminAuth(e) {
+            e.preventDefault();
+            const inputPw = document.getElementById('input-auth-admin-pw').value;
+            if (inputPw === state.adminPw) {
+                state.isAdminAuth = true;
+                closeAdminAuthModal();
+                updateSecurityIcons();
+                showToast("Akses Panel Admin Diberikan!", "success");
+                switchTab('admin');
+                document.getElementById('input-auth-admin-pw').value = '';
+            } else {
+                showToast("Sandi Admin salah!", "error");
+            }
+        }
+
+        function lockAdminSession() {
+            state.isAdminAuth = false;
+            updateSecurityIcons();
+            switchTab('voting');
+            showToast("Anda telah keluar dari Panel Admin.", "info");
+        }
+
+        function openResultsAuthModal() {
+            const modal = document.getElementById('modal-results-auth');
+            const box = document.getElementById('modal-results-auth-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            lucide.createIcons();
+        }
+
+        function closeResultsAuthModal() {
+            const modal = document.getElementById('modal-results-auth');
+            const box = document.getElementById('modal-results-auth-box');
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function verifyResultsAuth(e) {
+            e.preventDefault();
+            const inputPw = document.getElementById('input-auth-results-pw').value;
+            if (inputPw === state.resultsPw) {
+                state.isResultsAuth = true;
+                closeResultsAuthModal();
+                updateSecurityIcons();
+                showToast("Akses Hasil Realtime Diberikan!", "success");
+                switchTab('results');
+                document.getElementById('input-auth-results-pw').value = '';
+            } else {
+                showToast("Sandi Akses Hasil salah!", "error");
+            }
+        }
+
+        function lockResultsSession() {
+            state.isResultsAuth = false;
+            updateSecurityIcons();
+            switchTab('voting');
+            showToast("Sesi Hasil Realtime dikunci.", "info");
+        }
+
+        function handleUpdatePasswords(e) {
+            e.preventDefault();
+            const newAdmin = document.getElementById('input-new-admin-pw').value.trim();
+            const newResults = document.getElementById('input-new-results-pw').value.trim();
+
+            if (newAdmin) {
+                state.adminPw = newAdmin;
+                localStorage.setItem('evoting_admin_pw', newAdmin);
+            }
+            if (newResults) {
+                state.resultsPw = newResults;
+                localStorage.setItem('evoting_results_pw', newResults);
+            }
+
+            showToast("Kata sandi berhasil diperbarui!", "success");
+            document.getElementById('input-new-admin-pw').value = '';
+            document.getElementById('input-new-results-pw').value = '';
+        }
+
+        // --- CANDIDATE CRUD MANAGEMENT ---
+        function renderAdminCandidates() {
+            const grid = document.getElementById('admin-candidates-grid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+
+            ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                const candidates = state.candidates[cat] || [];
+                candidates.forEach(c => {
+                    const votesCount = state.votes[c.id] || 0;
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition";
+                    card.innerHTML = `
+                        <div class="p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                                    cat === 'OSIM' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
+                                    cat === 'PMR' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                                    'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                }">${c.category} - No ${c.number}</span>
+                                <span class="text-xs font-bold text-slate-400">${votesCount} Suara</span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <img src="${c.photo}" alt="${c.name}" class="w-14 h-14 rounded-xl object-cover border border-slate-700 shrink-0">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white leading-tight">${c.name}</h4>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">${c.categoryLabel}</p>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-400 italic line-clamp-2">"${c.visi}"</p>
+                        </div>
+
+                        <div class="p-3 bg-slate-950/60 border-t border-slate-800 flex items-center gap-2">
+                            <button onclick="openCandidateModal('edit', '${cat}', '${c.id}')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit Paslon
+                            </button>
+                            <button onclick="deleteCandidate('${cat}', '${c.id}')" class="py-1.5 px-3 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+
+            lucide.createIcons();
+        }
+
+        let uploadedImageDataUrl = '';
+
+        function handleCandidateImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    uploadedImageDataUrl = evt.target.result;
+                    document.getElementById('cand-photo-preview').src = uploadedImageDataUrl;
+                    document.getElementById('cand-input-photo-url').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewPhotoUrl() {
+            const url = document.getElementById('cand-input-photo-url').value.trim();
+            if (url) {
+                uploadedImageDataUrl = '';
+                document.getElementById('cand-photo-preview').src = url;
+            }
+        }
+
+        function openCandidateModal(mode, cat = 'OSIM', candidateId = null) {
+            uploadedImageDataUrl = '';
+            document.getElementById('cand-input-file').value = '';
+
+            const title = document.getElementById('cand-form-title');
+            const editId = document.getElementById('cand-edit-id');
+
+            if (mode === 'edit' && candidateId) {
+                title.innerText = "Edit Data Paslon";
+                editId.value = candidateId;
+
+                const candidate = (state.candidates[cat] || []).find(c => c.id === candidateId);
+                if (candidate) {
+                    document.getElementById('cand-input-category').value = candidate.category;
+                    document.getElementById('cand-input-number').value = candidate.number;
+                    document.getElementById('cand-input-name').value = candidate.name;
+                    document.getElementById('cand-input-catlabel').value = candidate.categoryLabel;
+                    document.getElementById('cand-input-photo-url').value = candidate.photo;
+                    document.getElementById('cand-photo-preview').src = candidate.photo;
+                    document.getElementById('cand-input-visi').value = candidate.visi;
+                    document.getElementById('cand-input-misi').value = (candidate.misi || []).join('\n');
+                }
+            } else {
+                title.innerText = "Tambah Paslon Baru";
+                editId.value = '';
+                document.getElementById('cand-input-category').value = 'OSIM';
+                document.getElementById('cand-input-number').value = '';
+                document.getElementById('cand-input-name').value = '';
+                document.getElementById('cand-input-catlabel').value = 'Ketua OSIM';
+                document.getElementById('cand-input-photo-url').value = '';
+                document.getElementById('cand-photo-preview').src = 'https://placehold.co/400x300/1e293b/64748b?text=Preview+Foto';
+                document.getElementById('cand-input-visi').value = '';
+                document.getElementById('cand-input-misi').value = '';
+            }
+
+            const modal = document.getElementById('modal-candidate-form');
+            const box = document.getElementById('modal-cand-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            lucide.createIcons();
+        }
+
+        function closeCandidateModal() {
+            const modal = document.getElementById('modal-candidate-form');
+            const box = document.getElementById('modal-cand-box');
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function handleSaveCandidate(e) {
+            e.preventDefault();
+            const editId = document.getElementById('cand-edit-id').value;
+            const category = document.getElementById('cand-input-category').value;
+            const number = document.getElementById('cand-input-number').value.trim();
+            const name = document.getElementById('cand-input-name').value.trim();
+            const catLabel = document.getElementById('cand-input-catlabel').value.trim();
+            const photoUrl = document.getElementById('cand-input-photo-url').value.trim();
+            const visi = document.getElementById('cand-input-visi').value.trim();
+            const misiRaw = document.getElementById('cand-input-misi').value.trim();
+
+            const finalPhoto = uploadedImageDataUrl || photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400';
+            const misiArray = misiRaw.split('\n').filter(line => line.trim().length > 0);
+
+            if (!state.candidates[category]) {
+                state.candidates[category] = [];
+            }
+
+            if (editId) {
+                // Find and edit in whichever category it was before
+                let existing = null;
+                let oldCat = null;
+                for (const cKey in state.candidates) {
+                    const found = state.candidates[cKey].find(c => c.id === editId);
+                    if (found) {
+                        existing = found;
+                        oldCat = cKey;
+                        break;
+                    }
+                }
+
+                if (existing) {
+                    // Remove from old cat if changed
+                    if (oldCat !== category) {
+                        state.candidates[oldCat] = state.candidates[oldCat].filter(c => c.id !== editId);
+                        state.candidates[category].push(existing);
+                    }
+                    existing.category = category;
+                    existing.number = number;
+                    existing.name = name;
+                    existing.categoryLabel = catLabel;
+                    existing.photo = finalPhoto;
+                    existing.visi = visi;
+                    existing.misi = misiArray;
+                }
+            } else {
+                // Create New Candidate
+                const newObj = {
+                    id: `${category.toLowerCase()}-${Date.now()}`,
+                    number: number,
+                    name: name,
+                    photo: finalPhoto,
+                    category: category,
+                    categoryLabel: catLabel,
+                    visi: visi,
+                    misi: misiArray
+                };
+                state.candidates[category].push(newObj);
+                state.votes[newObj.id] = 0;
+            }
+
+            localStorage.setItem('evoting_candidates_v3', JSON.stringify(state.candidates));
+            localStorage.setItem('evoting_votes', JSON.stringify(state.votes));
+
+            closeCandidateModal();
+            renderCandidates();
+            renderAdminCandidates();
+            showToast("Data kandidat berhasil disimpan!", "success");
+        }
+
+        function deleteCandidate(cat, candidateId) {
+            if (!state.candidates[cat]) return;
+
+            state.candidates[cat] = state.candidates[cat].filter(c => c.id !== candidateId);
+            delete state.votes[candidateId];
+
+            localStorage.setItem('evoting_candidates_v3', JSON.stringify(state.candidates));
+            localStorage.setItem('evoting_votes', JSON.stringify(state.votes));
+
+            renderCandidates();
+            renderAdminCandidates();
+            showToast("Kandidat berhasil dihapus.", "info");
+        }
+
+        // --- TOKEN GENERATOR & MANAGEMENT ---
+        function generateTokens(count) {
+            const tokens = [];
+            const existingTokens = new Set();
+            
+            for (let i = 1; i <= count; i++) {
+                let tokenCode = '';
+                do {
+                    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                    let code = '';
+                    for (let j = 0; j < 6; j++) {
+                        code += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    tokenCode = `MT4-${code}`;
+                } while (existingTokens.has(tokenCode));
+
+                existingTokens.add(tokenCode);
+
+                const isGuru = i > 1100 && count >= 1200;
+                const nisId = isGuru ? `GURU-${1000 + (i - 1100)}` : `${10000 + i}`;
+                const categoryLabel = isGuru ? 'Guru / Staf' : 'Siswa';
+
+                tokens.push({
+                    nis: nisId,
+                    token: tokenCode,
+                    category: categoryLabel,
+                    used: false
+                });
+            }
+
+            state.registeredTokens = tokens;
+            localStorage.setItem('evoting_tokens_v2', JSON.stringify(tokens));
+            tokenPageState.currentPage = 1;
+            renderTokenTable();
+            showToast(`Berhasil meng-generate ${count} Token Pemilih!`, 'success');
+        }
+
+        function generateCustomTokens() {
+            const input = document.getElementById('custom-token-count');
+            const val = parseInt(input ? input.value : '0', 10);
+            if (!val || val <= 0) {
+                showToast('Masukkan jumlah token yang valid!', 'error');
+                return;
+            }
+            if (val > 3000) {
+                showToast('Maksimal token yang dapat dibuat sekaligus adalah 3.000', 'error');
+                return;
+            }
+            generateTokens(val);
+        }
+
+        function exportTokensCSV() {
+            const tokens = state.registeredTokens || [];
+            if (tokens.length === 0) {
+                showToast('Belum ada token untuk diekspor!', 'error');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,No,NIS/ID,Token,Kategori,Status\n";
+            tokens.forEach((t, index) => {
+                csvContent += `${index + 1},"${t.nis}","${t.token}","${t.category}","${t.used ? 'Sudah Memilih' : 'Belum Memilih'}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Token_EVoting_MTsN4Bwi_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Berhasil mengunduh file CSV Token!', 'success');
+        }
+
+        function filterTokens() {
+            const input = document.getElementById('token-search-input');
+            tokenPageState.searchQuery = input ? input.value.trim().toLowerCase() : '';
+            tokenPageState.currentPage = 1;
+            renderTokenTable();
+        }
+
+        function changeTokenPage(dir) {
+            const filtered = getFilteredTokens();
+            const maxPage = Math.ceil(filtered.length / tokenPageState.pageSize) || 1;
+            const newPage = tokenPageState.currentPage + dir;
+            if (newPage >= 1 && newPage <= maxPage) {
+                tokenPageState.currentPage = newPage;
+                renderTokenTable();
+            }
+        }
+
+        function getFilteredTokens() {
+            const list = state.registeredTokens || [];
+            if (!tokenPageState.searchQuery) return list;
+            return list.filter(t => 
+                t.nis.toLowerCase().includes(tokenPageState.searchQuery) || 
+                t.token.toLowerCase().includes(tokenPageState.searchQuery) ||
+                t.category.toLowerCase().includes(tokenPageState.searchQuery)
+            );
+        }
+
+        function renderTokenTable() {
+            const tbody = document.getElementById('token-list-tbody');
+            if (!tbody) return;
+
+            const filtered = getFilteredTokens();
+            const total = filtered.length;
+            const pageSize = tokenPageState.pageSize;
+            const maxPage = Math.ceil(total / pageSize) || 1;
+
+            if (tokenPageState.currentPage > maxPage) tokenPageState.currentPage = maxPage;
+
+            const startIdx = (tokenPageState.currentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            const pageData = filtered.slice(startIdx, endIdx);
+
+            tbody.innerHTML = '';
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-slate-500">
+                            Tidak ada token ditemukan. Silakan klik tombol "1.200 Full" untuk meng-generate token.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageData.forEach((t, idx) => {
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-800/40 transition";
+                    row.innerHTML = `
+                        <td class="px-4 py-2.5 font-medium text-slate-400">${startIdx + idx + 1}</td>
+                        <td class="px-4 py-2.5 font-bold text-white">${t.nis}</td>
+                        <td class="px-4 py-2.5 font-mono font-bold text-indigo-400">${t.token}</td>
+                        <td class="px-4 py-2.5">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.category.includes('Guru') ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'}">
+                                ${t.category}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5">
+                            ${t.used 
+                                ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">Sudah Memilih</span>' 
+                                : '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Belum Digunakan</span>'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            const infoEl = document.getElementById('token-stats-info');
+            if (infoEl) infoEl.innerText = `Menampilkan ${total > 0 ? startIdx + 1 : 0}-${endIdx} dari ${total} token`;
+
+            const pageNumEl = document.getElementById('token-page-num');
+            if (pageNumEl) pageNumEl.innerText = `${tokenPageState.currentPage} / ${maxPage}`;
+        }
+
+        function printTokenSlips() {
+            const tokens = state.registeredTokens || [];
+            if (tokens.length === 0) {
+                showToast("Belum ada token. Silakan generate 1.200 token terlebih dahulu!", "error");
+                return;
+            }
+
+            const container = document.getElementById('printable-cards-container');
+            container.innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 print:grid-cols-3 print:gap-2">
+                    ${tokens.map((t, index) => `
+                        <div class="token-card-print border-2 border-dashed border-slate-300 p-3 rounded-xl bg-white text-slate-900 flex flex-col justify-between shadow-sm">
+                            <div class="border-b border-slate-200 pb-1.5 mb-1.5 flex justify-between items-center">
+                                <span class="font-extrabold text-[11px] text-indigo-700">MTsN 4 BANYUWANGI</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">#${index + 1}</span>
+                            </div>
+                            <div class="text-center py-1">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">KUPON PEMILIHAN</p>
+                                <p class="text-xs font-bold text-slate-800 mt-0.5">${t.category} (${t.nis})</p>
+                                <div class="my-1.5 py-1 px-2 bg-slate-100 rounded-lg border border-slate-300">
+                                    <p class="text-[9px] text-slate-500 font-semibold">TOKEN UNIK:</p>
+                                    <p class="text-sm font-black font-mono tracking-wider text-indigo-900">${t.token}</p>
+                                </div>
+                            </div>
+                            <div class="text-[8px] text-slate-400 text-center italic border-t border-slate-100 pt-1">
+                                LUBER JURDIL • Sekali Pakai
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            const modal = document.getElementById('modal-print-slips');
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closePrintModal() {
+            document.getElementById('modal-print-slips').classList.add('hidden');
+        }
+
+        // --- VOTER SESSION & LOGIN ---
+        function checkVoterSession() {
+            const authCard = document.getElementById('voter-auth-card');
+            const activeCard = document.getElementById('voter-active-card');
+            const displayName = document.getElementById('voter-display-name');
+
+            if (state.currentVoter) {
+                if (authCard) authCard.classList.add('hidden');
+                if (activeCard) activeCard.classList.remove('hidden');
+                if (displayName) displayName.innerText = state.currentVoter.name;
+            } else {
+                if (authCard) authCard.classList.remove('hidden');
+                if (activeCard) activeCard.classList.add('hidden');
+            }
+            updateVoterBadges();
+        }
+
+        function saveVoterSession() {
+            if (state.currentVoter) {
+                localStorage.setItem('evoting_voter', JSON.stringify(state.currentVoter));
+            } else {
+                localStorage.removeItem('evoting_voter');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const nis = document.getElementById('input-nis').value.trim();
+            const token = document.getElementById('input-token').value.trim().toUpperCase();
+
+            if (!nis || !token) {
+                showToast("Harap isi NIS/ID dan Token!", "error");
+                return;
+            }
+
+            const regTokens = state.registeredTokens || [];
+            if (regTokens.length > 0) {
+                const found = regTokens.find(t => 
+                    (t.nis.toLowerCase() === nis.toLowerCase() || t.token.toLowerCase() === token.toLowerCase()) && 
+                    t.token.toUpperCase() === token
+                );
+
+                if (!found) {
+                    showToast("NIS/ID atau Token salah!", "error");
+                    return;
+                }
+
+                if (found.used) {
+                    showToast("Token ini sudah pernah digunakan untuk memilih!", "error");
+                    return;
+                }
+
+                state.currentVoter = {
+                    nis: found.nis,
+                    token: found.token,
+                    name: `${found.category} (${found.nis})`,
+                    voted: { OSIM: null, PMR: null, DG: null }
+                };
+            } else {
+                state.currentVoter = {
+                    nis: nis,
+                    token: token,
+                    name: `Pemilih (${nis})`,
+                    voted: { OSIM: null, PMR: null, DG: null }
+                };
+            }
+
+            saveVoterSession();
+            checkVoterSession();
+            renderCandidates();
+            showToast("Berhasil masuk bilik suara!", "success");
+        }
+
+        function logoutVoter() {
+            state.currentVoter = null;
+            saveVoterSession();
+            checkVoterSession();
+            renderCandidates();
+            showToast("Anda telah keluar dari bilik suara.", "info");
+        }
+
+        function updateVoterBadges() {
+            ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                const badge = document.getElementById(`badge-voted-${cat}`);
+                if (badge) {
+                    const hasVoted = state.currentVoter && state.currentVoter.voted && state.currentVoter.voted[cat];
+                    badge.classList.toggle('hidden', !hasVoted);
+                }
+            });
+        }
+
+        // --- CANDIDATE RENDERING & VOTING ACTION ---
+        function renderCandidates() {
+            ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                const container = document.getElementById(`candidates-container-${cat}`);
+                if (!container) return;
+
+                container.innerHTML = '';
+                const candidates = state.candidates[cat] || [];
+
+                candidates.forEach((c) => {
+                    const hasVotedCat = state.currentVoter && state.currentVoter.voted && state.currentVoter.voted[cat];
+                    const isSelectedByVoter = hasVotedCat === c.id;
+
+                    const card = document.createElement('div');
+                    card.className = `glass-card rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
+                        isSelectedByVoter ? 'border-emerald-500 shadow-xl shadow-emerald-500/10' : 'border-slate-800 hover:border-indigo-500/50'
+                    }`;
+
+                    card.innerHTML = `
+                        <div class="relative h-64 overflow-hidden">
+                            <img src="${c.photo}" alt="${c.name}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                            <span class="absolute top-4 left-4 text-xs font-black px-3 py-1 bg-indigo-600 text-white rounded-xl shadow-lg">
+                                No ${c.number}
+                            </span>
+                            ${isSelectedByVoter ? `
+                                <span class="absolute top-4 right-4 text-xs font-black px-3 py-1 bg-emerald-500 text-white rounded-xl shadow-lg flex items-center gap-1">
+                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> PILIHAN ANDA
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">
+                                    ${c.categoryLabel}
+                                </span>
+                                <h3 class="text-xl font-bold text-white mt-2">${c.name}</h3>
+                                <p class="text-xs text-slate-400 mt-2 line-clamp-2 italic">"${c.visi}"</p>
+                            </div>
+
+                            <div class="pt-2 space-y-2">
+                                <button onclick="openVisiMisiModal('${cat}', '${c.id}')" class="w-full py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Lihat Visi & Misi Complete
+                                </button>
+                                
+                                ${hasVotedCat ? `
+                                    <button disabled class="w-full py-3 bg-slate-800 text-slate-500 rounded-xl text-xs font-bold cursor-not-allowed">
+                                        ${isSelectedByVoter ? 'Telah Anda Pilih' : 'Kategori Ini Sudah Dipilih'}
+                                    </button>
+                                ` : `
+                                    <button onclick="promptVote('${cat}', '${c.id}')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+                                        <i data-lucide="vote" class="w-4 h-4"></i> Coblos Paslon Ini
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+            lucide.createIcons();
+        }
+
+        function promptVote(cat, candidateId) {
+            if (!state.currentVoter) {
+                showToast("Harap login terlebih dahulu dengan NIS & Token!", "error");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            const candidate = (state.candidates[cat] || []).find(c => c.id === candidateId);
+            if (!candidate) return;
+
+            state.selectedCandidateForVote = candidate;
+
+            document.getElementById('modal-candidate-img').src = candidate.photo;
+            document.getElementById('modal-candidate-num').innerText = `No ${candidate.number}`;
+            document.getElementById('modal-candidate-name').innerText = candidate.name;
+            document.getElementById('modal-candidate-cat').innerText = candidate.categoryLabel;
+
+            const modal = document.getElementById('modal-confirm');
+            const box = document.getElementById('modal-confirm-box');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            lucide.createIcons();
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('modal-confirm');
+            const box = document.getElementById('modal-confirm-box');
+            if (!modal) return;
+
+            modal.classList.add('opacity-0');
+            if (box) box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function executeVote() {
+            const c = state.selectedCandidateForVote;
+            if (!c || !state.currentVoter) return;
+
+            state.votes[c.id] = (state.votes[c.id] || 0) + 1;
+            state.currentVoter.voted[c.category] = c.id;
+
+            if (state.registeredTokens) {
+                const tokObj = state.registeredTokens.find(t => t.token === state.currentVoter.token);
+                if (tokObj) {
+                    tokObj.used = true;
+                    localStorage.setItem('evoting_tokens_v2', JSON.stringify(state.registeredTokens));
+                    renderTokenTable();
+                }
+            }
+
+            localStorage.setItem('evoting_votes', JSON.stringify(state.votes));
+            saveVoterSession();
+
+            closeConfirmModal();
+            updateVoterBadges();
+            renderCandidates();
+
+            showToast(`Suara Anda untuk ${c.name} (${c.category}) berhasil dicatat!`, "success");
+
+            const v = state.currentVoter.voted;
+            if (!v.OSIM) switchCategory('OSIM');
+            else if (!v.PMR) switchCategory('PMR');
+            else if (!v.DG) switchCategory('DG');
+            else {
+                setTimeout(() => {
+                    showToast("Selamat! Anda telah memberikan suara untuk seluruh kategori.", "success");
+                }, 1000);
+            }
+        }
+
+        function openVisiMisiModal(cat, candidateId) {
+            const candidate = (state.candidates[cat] || []).find(c => c.id === candidateId);
+            if (!candidate) return;
+
+            document.getElementById('vm-num').innerText = `No ${candidate.number}`;
+            document.getElementById('vm-name').innerText = candidate.name;
+            document.getElementById('vm-org').innerText = candidate.categoryLabel;
+            document.getElementById('vm-visi').innerText = `"${candidate.visi}"`;
+
+            const listEl = document.getElementById('vm-misi-list');
+            listEl.innerHTML = '';
+            (candidate.misi || []).forEach((m, idx) => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-2 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60";
+                li.innerHTML = `
+                    <span class="w-5 h-5 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-[10px]">${idx + 1}</span>
+                    <span class="leading-relaxed">${m}</span>
+                `;
+                listEl.appendChild(li);
+            });
+
+            const modal = document.getElementById('modal-visi-misi');
+            const box = document.getElementById('modal-vm-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            lucide.createIcons();
+        }
+
+        function closeVisiMisiModal() {
+            const modal = document.getElementById('modal-visi-misi');
+            const box = document.getElementById('modal-vm-box');
+            if (!modal) return;
+
+            modal.classList.add('opacity-0');
+            if (box) box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // --- REALTIME CHARTS & RESULTS ---
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                    }
+                }
+            };
+
+            ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                const canvas = document.getElementById(`chart-${cat}`);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                charts[cat] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: cat === 'OSIM' ? ['#6366f1', '#a855f7', '#ec4899'] : cat === 'PMR' ? ['#f43f5e', '#fb7185', '#e11d48'] : ['#f59e0b', '#fbbf24', '#d97706'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: chartOptions
+                });
+            });
+        }
+
+        function renderResults() {
+            let totalAccumulatedVotes = 0;
+
+            ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                const candidates = state.candidates[cat] || [];
+                const labels = candidates.map(c => `No ${c.number}`);
+                const dataVotes = candidates.map(c => state.votes[c.id] || 0);
+
+                const catTotalVotes = dataVotes.reduce((a, b) => a + b, 0);
+                totalAccumulatedVotes += catTotalVotes;
+
+                const badge = document.getElementById(`${cat.toLowerCase()}-total-badge`);
+                if (badge) badge.innerText = `${catTotalVotes} Suara`;
+
+                if (charts[cat]) {
+                    charts[cat].data.labels = labels;
+                    charts[cat].data.datasets[0].data = dataVotes;
+                    charts[cat].update();
+                }
+
+                const detailsContainer = document.getElementById(`details-${cat}`);
+                if (detailsContainer) {
+                    detailsContainer.innerHTML = '';
+
+                    let maxVote = -1;
+                    let winningCandidateId = null;
+                    candidates.forEach(c => {
+                        const count = state.votes[c.id] || 0;
+                        if (count > maxVote && count > 0) {
+                            maxVote = count;
+                            winningCandidateId = c.id;
+                        }
+                    });
+
+                    candidates.forEach(c => {
+                        const count = state.votes[c.id] || 0;
+                        const pct = catTotalVotes > 0 ? ((count / catTotalVotes) * 100).toFixed(1) : '0.0';
+                        const isWinning = c.id === winningCandidateId && catTotalVotes > 0;
+
+                        const row = document.createElement('div');
+                        row.className = "space-y-1.5 p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80";
+                        row.innerHTML = `
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                                    No ${c.number} - ${c.name}
+                                    ${isWinning ? '<span class="text-[10px] bg-amber-500/20 text-amber-300 font-extrabold px-2 py-0.5 rounded border border-amber-500/30">UNGGUL</span>' : ''}
+                                </span>
+                                <span class="font-bold text-white">${count} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div class="h-full ${cat === 'OSIM' ? 'bg-indigo-500' : cat === 'PMR' ? 'bg-rose-500' : 'bg-amber-500'} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        `;
+                        detailsContainer.appendChild(row);
+                    });
+                }
+            });
+
+            const statTotalVotes = document.getElementById('stat-total-votes');
+            if (statTotalVotes) statTotalVotes.innerText = totalAccumulatedVotes;
+
+            const totalVoters = 1200;
+            const turnoutPct = ((totalAccumulatedVotes / (totalVoters * 3)) * 100).toFixed(1);
+            const statTurnout = document.getElementById('stat-turnout');
+            if (statTurnout) statTurnout.innerText = `${turnoutPct}%`;
+        }
+
+        // --- SIMULATION & RESET ---
+        function simulateVotes(count) {
+            for (let i = 0; i < count; i++) {
+                ['OSIM', 'PMR', 'DG'].forEach(cat => {
+                    const candidates = state.candidates[cat] || [];
+                    if (candidates.length > 0) {
+                        const randomCand = candidates[Math.floor(Math.random() * candidates.length)];
+                        state.votes[randomCand.id] = (state.votes[randomCand.id] || 0) + 1;
+                    }
+                });
+            }
+            localStorage.setItem('evoting_votes', JSON.stringify(state.votes));
+            renderResults();
+            renderCandidates();
+            renderAdminCandidates();
+            showToast(`Simulasi +${count} suara berhasil ditambahkan!`, "success");
+        }
+
+        function resetAllVotes() {
+            for (const cat in state.candidates) {
+                state.candidates[cat].forEach(c => {
+                    state.votes[c.id] = 0;
+                });
+            }
+
+            if (state.currentVoter) {
+                state.currentVoter.voted = { OSIM: null, PMR: null, DG: null };
+                saveVoterSession();
+                updateVoterBadges();
+            }
+
+            localStorage.setItem('evoting_votes', JSON.stringify(state.votes));
+            renderResults();
+            renderCandidates();
+            renderAdminCandidates();
+            showToast("Seluruh perolehan suara telah direset ke 0.", "info");
+        }
+    </script>
+</body>
+</html>
